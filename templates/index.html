@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Water Monitoring System</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+font-family:Arial;
+padding:20px;
+background:#f4f4f4;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+input{
+width:250px;
+padding:8px;
+margin:5px;
+}
+
+button{
+padding:10px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Recovery and Reuse of Fresh Water Resources</h1>
+
+<div class="card">
+
+<h2>Current Data</h2>
+
+<p>Fresh Water: <span id="fresh"></span> L</p>
+<p>Waste Water: <span id="waste"></span> L</p>
+<p>Recovered Water: <span id="recover"></span> L</p>
+<p>Reused Water: <span id="reuse"></span> L</p>
+<p>Recovery Efficiency: <span id="eff"></span>%</p>
+
+</div>
+
+<div class="card">
+
+<h2>Manual Update</h2>
+
+<form id="updateForm">
+
+<input type="number" name="fresh_water" placeholder="Fresh Water"><br>
+
+<input type="number" name="waste_water" placeholder="Waste Water"><br>
+
+<input type="number" name="recovered_water" placeholder="Recovered Water"><br>
+
+<input type="number" name="reused_water" placeholder="Reused Water"><br>
+
+<button type="submit">Update</button>
+
+</form>
+
+</div>
+
+<div class="card">
+<h2>Water Monitoring Graph</h2>
+<canvas id="waterChart"></canvas>
+</div>
+
+<script>
+
+let chart;
+
+function loadData(){
+
+fetch('/get_data')
+.then(response=>response.json())
+.then(data=>{
+
+document.getElementById('fresh').innerText=data.fresh_water;
+document.getElementById('waste').innerText=data.waste_water;
+document.getElementById('recover').innerText=data.recovered_water;
+document.getElementById('reuse').innerText=data.reused_water;
+document.getElementById('eff').innerText=data.efficiency;
+
+updateChart(data);
+
+});
+
+}
+
+function updateChart(data){
+
+if(chart){
+chart.destroy();
+}
+
+chart=new Chart(
+document.getElementById('waterChart'),
+{
+type:'bar',
+data:{
+labels:[
+'Fresh Water',
+'Waste Water',
+'Recovered Water',
+'Reused Water'
+],
+datasets:[{
+label:'Litres',
+data:[
+data.fresh_water,
+data.waste_water,
+data.recovered_water,
+data.reused_water
+]
+}]
+}
+}
+);
+
+}
+
+setInterval(loadData,2000);
+loadData();
+
+document.getElementById("updateForm")
+.addEventListener("submit",function(e){
+
+e.preventDefault();
+
+fetch('/update',{
+method:'POST',
+body:new FormData(this)
+})
+.then(r=>r.text())
+.then(msg=>alert(msg));
+
+});
+
+</script>
+
+</body>
+</html>
